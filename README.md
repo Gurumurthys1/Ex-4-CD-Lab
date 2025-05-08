@@ -12,62 +12,68 @@ To write a YACC program to recognize a valid variable which starts with a letter
 7.	Compile these with the C compiler as gcc lex.yy.c y.tab.c
 8.	Enter a statement as input and the valid variables are identified as output.
 # PROGRAM
+
+Program name:exp41.l
+```
+%{
+#include "y.tab.h"
+#include <string.h>
+%}
+
+%%
+[a-zA-Z][a-zA-Z0-9]*    { yylval.str = strdup(yytext); return IDENTIFIER; }
+\n                      { return '\n'; }
+.                       { return yytext[0]; }
+%%
+
+int yywrap() {
+    return 1;
+}
+```
+Program name:exp41.y
 ```
 
-Program name:ex4.l
 %{
-/* This LEX program returns the tokens for the Expression */
-#include"y.tab.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+extern int yylex();
+void yyerror(const char *msg);
+
 %}
-%%
-"int" {return INT;}
-"float" {return FLOAT;}
-"double" {return DOUBLE;}
-[a-zA-Z]*[0-9]* {printf("\nIdentifier is %s",yytext);
-return ID;
+
+%union {
+    char *str;
 }
-. return yytext[0];
-\n return 0;
+
+%token <str> IDENTIFIER
+
 %%
-int yywrap()
-{
-return 1;
-}
-Program name:ex4.y
-%{
-#include<stdio.h>
-/* This YACC program is for recognising the Expression*/
- %}
-%token ID INT FLOAT DOUBLE
+start:
+    IDENTIFIER '\n' {
+        printf("Valid variable: %s\n", $1);
+        free($1);  // clean up strdup memory
+    }
+    ;
 %%
-D: T L
-;
-L: L,ID
-| ID
-;
-T: INT
-| FLOAT
-| DOUBLE
-;
-%%
-extern FILE*yyin;
-main()
-{
-do
-{
-yyparse();
-}while(!feof(yyin));
+
+int main() {
+    printf("Enter a variable name:\n");
+    return yyparse();
 }
-yyerror(char*s)
-{
+
+void yyerror(const char *msg) {
+    printf("Invalid variable name\n");
 }
+
 
 ```
 
 # Output
 
 
-![image](https://github.com/user-attachments/assets/ecb96911-2b81-4651-8e7d-e3f8ea6f9a8b)
+![Screenshot 2025-05-08 134159](https://github.com/user-attachments/assets/749c68ac-989d-4c56-b1a4-3b77ee134bb1)
 
 # Result
 A YACC program to recognize a valid variable which starts with a letter followed by any number of letters or digits is executed successfully and the output is verified.
